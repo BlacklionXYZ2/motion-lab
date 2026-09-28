@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Training artefacts
+runs/
+outputs/
+checkpoints/
+*.pt
+*.pth
+*.ckpt
+*.onnx
+wandb/
+
+# Data
+data/
+datasets/
+*.npz
+*.h5
+*.bvh
+*.fbx
+
+# OS
+Thumbs.db
+.DS_Store
