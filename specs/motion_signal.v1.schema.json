@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "motionlab/motion_signal.v1",
+  "title": "MotionSignal",
+  "description": "The motion core's only input from SORA, version 1 (frozen 2026-10-11, motion-lab M0). Mirrors SORA's motion interface design of 2026-10-05 with the roadmap's defaults: audio fields rms, voiced, pitch and onset from her own TTS output (decision 8); emotion as valence and arousal without labels (decision 7). Every field is semantic: no joint, bone or renderer state. A change needs a version bump agreed with the owner.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "at", "intent", "intent_target", "conversation", "emotion", "attention", "audio", "context"],
+  "properties": {
+    "version": {"const": 1},
+    "at": {"type": "string", "format": "date-time", "description": "When the signal applies (UTC)."},
+    "intent": {"enum": ["idle", "wave", "sit", "lean", "climb", "stand", "walk", "point", "look", "present"]},
+    "intent_target": {"type": ["string", "null"], "description": "A Core-issued window, control or pointer reference, already revalidated."},
+    "conversation": {"enum": ["idle", "listening", "thinking", "speaking", "waiting_for_agent"]},
+    "emotion": {
+      "type": "object", "additionalProperties": false, "required": ["valence", "arousal"],
+      "properties": {
+        "valence": {"type": "number", "minimum": -1, "maximum": 1},
+        "arousal": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    },
+    "attention": {
+      "type": "object", "additionalProperties": false, "required": ["target", "salience"],
+      "properties": {
+        "target": {"type": ["string", "null"]},
+        "salience": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    },
+    "audio": {
+      "description": "Her own speech envelope for this frame; null while she is silent.",
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "object", "additionalProperties": false, "required": ["rms", "voiced", "pitch", "onset"],
+          "properties": {
+            "rms": {"type": "number", "minimum": 0, "maximum": 1},
+            "voiced": {"type": "boolean"},
+            "pitch": {"type": ["number", "null"], "minimum": 0, "maximum": 1, "description": "Log-pitch within her voice's range; null when unvoiced."},
+            "onset": {"type": "number", "minimum": 0, "maximum": 1}
+          }
+        }
+      ]
+    },
+    "context": {
+      "type": "object", "additionalProperties": false, "required": ["monitor_id", "support_surface_id"],
+      "properties": {
+        "monitor_id": {"type": "string"},
+        "support_surface_id": {"type": ["string", "null"], "description": "The taskbar, a window top or an edge she is on."}
+      }
+    }
+  }
+}

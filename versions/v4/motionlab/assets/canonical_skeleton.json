@@ -1,0 +1,274 @@
+{
+  "names": [
+    "hips",
+    "spine",
+    "chest",
+    "upperChest",
+    "neck",
+    "head",
+    "leftShoulder",
+    "leftUpperArm",
+    "leftLowerArm",
+    "leftHand",
+    "rightShoulder",
+    "rightUpperArm",
+    "rightLowerArm",
+    "rightHand",
+    "leftUpperLeg",
+    "leftLowerLeg",
+    "leftFoot",
+    "leftToes",
+    "rightUpperLeg",
+    "rightLowerLeg",
+    "rightFoot",
+    "rightToes"
+  ],
+  "parents": [
+    -1,
+    0,
+    1,
+    2,
+    3,
+    4,
+    3,
+    6,
+    7,
+    8,
+    3,
+    10,
+    11,
+    12,
+    0,
+    14,
+    15,
+    16,
+    0,
+    18,
+    19,
+    20
+  ],
+  "offsets": [
+    [
+      -0.0,
+      0.894626,
+      0.017195
+    ],
+    [
+      0.0,
+      0.006634,
+      0.001703
+    ],
+    [
+      0.0,
+      0.181355,
+      0.011397
+    ],
+    [
+      -0.0,
+      0.082534,
+      -0.023326
+    ],
+    [
+      -0.0,
+      0.106765,
+      -0.030174
+    ],
+    [
+      0.0,
+      0.061552,
+      0.003349
+    ],
+    [
+      0.015531,
+      0.078084,
+      -0.034639
+    ],
+    [
+      0.081791,
+      -0.024089,
+      -0.001135
+    ],
+    [
+      0.216636,
+      -0.010733,
+      0.001448
+    ],
+    [
+      0.201992,
+      -0.001536,
+      0.006918
+    ],
+    [
+      -0.015531,
+      0.078084,
+      -0.034639
+    ],
+    [
+      -0.081791,
+      -0.024089,
+      -0.001135
+    ],
+    [
+      -0.216638,
+      -0.010733,
+      0.001449
+    ],
+    [
+      -0.20199,
+      -0.001534,
+      0.006889
+    ],
+    [
+      0.076569,
+      -0.047871,
+      -0.009511
+    ],
+    [
+      0.010987,
+      -0.370351,
+      0.018839
+    ],
+    [
+      -0.017986,
+      -0.38421,
+      -0.025307
+    ],
+    [
+      -0.012043,
+      -0.092193,
+      0.073236
+    ],
+    [
+      -0.076569,
+      -0.047871,
+      -0.009511
+    ],
+    [
+      -0.010986,
+      -0.370351,
+      0.018841
+    ],
+    [
+      0.017988,
+      -0.38421,
+      -0.025307
+    ],
+    [
+      0.012044,
+      -0.092193,
+      0.073236
+    ]
+  ],
+  "distance_from_parent_m": {
+    "spine": 0.0068,
+    "chest": 0.1817,
+    "upperChest": 0.0858,
+    "neck": 0.1109,
+    "head": 0.0616,
+    "leftShoulder": 0.0868,
+    "leftUpperArm": 0.0853,
+    "leftLowerArm": 0.2169,
+    "leftHand": 0.2021,
+    "rightShoulder": 0.0868,
+    "rightUpperArm": 0.0853,
+    "rightLowerArm": 0.2169,
+    "rightHand": 0.2021,
+    "leftUpperLeg": 0.0908,
+    "leftLowerLeg": 0.371,
+    "leftFoot": 0.3855,
+    "leftToes": 0.1184,
+    "rightUpperLeg": 0.0908,
+    "rightLowerLeg": 0.371,
+    "rightFoot": 0.3855,
+    "rightToes": 0.1184
+  },
+  "max_angle_deg": [
+    null,
+    60.0,
+    45.0,
+    45.0,
+    70.0,
+    80.0,
+    40.0,
+    170.0,
+    150.0,
+    90.0,
+    40.0,
+    170.0,
+    150.0,
+    90.0,
+    130.0,
+    160.0,
+    70.0,
+    60.0,
+    130.0,
+    160.0,
+    70.0,
+    60.0
+  ],
+  "omega_max": [
+    10.0,
+    10.0,
+    10.0,
+    10.0,
+    10.0,
+    10.0,
+    25.0,
+    25.0,
+    25.0,
+    25.0,
+    25.0,
+    25.0,
+    25.0,
+    25.0,
+    25.0,
+    25.0,
+    25.0,
+    25.0,
+    25.0,
+    25.0,
+    25.0,
+    25.0
+  ],
+  "limits_status": "placeholder until M1 dataset percentiles",
+  "checks": {
+    "max_left_right_asymmetry_m": 2.9e-05,
+    "hips_height_m": 0.8946,
+    "head_height_m": 1.3335
+  },
+  "avatar_joints": [
+    "hips",
+    "spine",
+    "chest",
+    "neck",
+    "head",
+    "leftShoulder",
+    "leftUpperArm",
+    "leftLowerArm",
+    "leftHand",
+    "rightShoulder",
+    "rightUpperArm",
+    "rightLowerArm",
+    "rightHand",
+    "leftUpperLeg",
+    "leftLowerLeg",
+    "leftFoot",
+    "leftToes",
+    "rightUpperLeg",
+    "rightLowerLeg",
+    "rightFoot",
+    "rightToes"
+  ],
+  "synthesised": {
+    "upperChest": "placed 0.436 of the way from chest to neck, as measured on sister1.0.vrm (N.E.K.O), because this VRM has no upperChest"
+  },
+  "source": {
+    "vrm": "Alice.vrm",
+    "vrm_sha256": "985df203881f0dc13bd710e9e44f0fe4952a57d69c15f90418d096dde58490cb",
+    "vrm_version": "0.x",
+    "turned_to_face_plus_z": true,
+    "vrm_meta_name": "Alice",
+    "vrm_license": "https://hub.vroid.com/license?allowed_to_use_user=everyone&characterization_allowed_user=everyone&corporate_commercial_use=disallow&credit=necessary&modification=disallow&personal_commercial_use=disallow&redistribution=disallow&sexual_expression=disallow&version=1&violent_expression=disallow",
+    "built_at": "2026-10-12T06:45:11+00:00"
+  }
+}

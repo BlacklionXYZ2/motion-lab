@@ -1,0 +1,8 @@
+{
+  "name": "MotionEnv.Tests",
+  "references": ["MotionEnv.AvatarLayer", "MotionEnv.FromSora", "MotionEnv.Environment", "VRM10", "UniGLTF", "UniGLTF.Utils", "VrmLib", "FastSpringBone10", "SpringBoneJobs"],
+  "overrideReferences": true,
+  "precompiledReferences": ["nunit.framework.dll", "Newtonsoft.Json.dll"],
+  "optionalUnityReferences": ["TestAssemblies"],
+  "autoReferenced": false
+}

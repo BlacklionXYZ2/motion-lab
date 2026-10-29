@@ -1,0 +1,50 @@
+{
+ "name": "combined-17m",
+ "data": [
+  "data/processed/lafan1",
+  "data/processed/100style",
+  "data/processed/cmu"
+ ],
+ "model": {
+  "hidden": 1024,
+  "layers": 2,
+  "head": "rotation",
+  "pose_width": 1024,
+  "fusion_width": 1024,
+  "decoder_width": 1024
+ },
+ "batch": 128,
+ "window": 72,
+ "warmup_ticks": 8,
+ "steps": 40000,
+ "learning_rate": 0.001,
+ "weight_decay": 0.0001,
+ "gradient_clip": 1.0,
+ "input_noise": 0.03,
+ "feedback_gradient": false,
+ "signal_dropout": 0.3,
+ "curriculum": [
+  [
+   0.0,
+   1
+  ],
+  [
+   0.3,
+   8
+  ],
+  [
+   0.6,
+   32
+  ]
+ ],
+ "validate_every": 1000,
+ "validation_windows": 512,
+ "seed": 1,
+ "source_weights": {
+  "lafan1": 1.0,
+  "100style": 0.3,
+  "cmu": 1.0
+ },
+ "storage": "cpu",
+ "_notes": "The size experiment (owner, 2026-10-25): as combined.json (0.8M) but a 17.5M model (GRU 1024 x 2, widths 1024). Same data, steps and curriculum, so the two compare on size alone."
+}

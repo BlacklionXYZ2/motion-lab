@@ -1,0 +1,314 @@
+{
+ "what": "v3 joint limits from the training data (scripts/joint_limits.py)",
+ "datasets": [
+  "data/processed/lafan1",
+  "data/processed/100style",
+  "data/processed/cmu"
+ ],
+ "frames_sampled": 1000000,
+ "frames_total": 5784868,
+ "percentiles": [
+  0.0005,
+  0.9995
+ ],
+ "hips_height_m": [
+  0.0573,
+  1.9593
+ ],
+ "joints": {
+  "spine": {
+   "box_min_rad": [
+    -0.54,
+    -0.2167,
+    -0.2885
+   ],
+   "box_max_rad": [
+    0.8868,
+    0.2167,
+    0.2885
+   ],
+   "angle_max_deg": 52.57,
+   "placeholder_angle_deg": 60.0
+  },
+  "chest": {
+   "box_min_rad": [
+    -0.3039,
+    -0.2741,
+    -0.235
+   ],
+   "box_max_rad": [
+    0.4543,
+    0.2741,
+    0.235
+   ],
+   "angle_max_deg": 26.97,
+   "placeholder_angle_deg": 45.0
+  },
+  "upperChest": {
+   "box_min_rad": [
+    -0.4281,
+    -0.1924,
+    -0.3049
+   ],
+   "box_max_rad": [
+    0.4539,
+    0.1924,
+    0.3049
+   ],
+   "angle_max_deg": 31.01,
+   "placeholder_angle_deg": 45.0
+  },
+  "neck": {
+   "box_min_rad": [
+    -0.7914,
+    -0.4945,
+    -0.631
+   ],
+   "box_max_rad": [
+    0.6289,
+    0.4945,
+    0.631
+   ],
+   "angle_max_deg": 50.23,
+   "placeholder_angle_deg": 70.0
+  },
+  "head": {
+   "box_min_rad": [
+    -0.9193,
+    -0.8138,
+    -1.1502
+   ],
+   "box_max_rad": [
+    1.3299,
+    0.8138,
+    1.1502
+   ],
+   "angle_max_deg": 83.01,
+   "placeholder_angle_deg": 80.0
+  },
+  "leftShoulder": {
+   "box_min_rad": [
+    -0.6123,
+    -0.5343,
+    -0.3878
+   ],
+   "box_max_rad": [
+    0.576,
+    0.2459,
+    0.3897
+   ],
+   "angle_max_deg": 42.68,
+   "placeholder_angle_deg": 40.0
+  },
+  "leftUpperArm": {
+   "box_min_rad": [
+    -1.5613,
+    -1.9198,
+    -1.7446
+   ],
+   "box_max_rad": [
+    2.0653,
+    0.9121,
+    0.8219
+   ],
+   "angle_max_deg": 137.48,
+   "placeholder_angle_deg": 170.0
+  },
+  "leftLowerArm": {
+   "box_min_rad": [
+    -1.133,
+    -2.4754,
+    -1.2741
+   ],
+   "box_max_rad": [
+    1.3264,
+    0.2959,
+    1.3464
+   ],
+   "angle_max_deg": 149.43,
+   "placeholder_angle_deg": 150.0
+  },
+  "leftHand": {
+   "box_min_rad": [
+    -1.6792,
+    -1.3043,
+    -1.2043
+   ],
+   "box_max_rad": [
+    1.3438,
+    1.3317,
+    1.299
+   ],
+   "angle_max_deg": 109.52,
+   "placeholder_angle_deg": 90.0
+  },
+  "rightShoulder": {
+   "box_min_rad": [
+    -0.6123,
+    -0.2459,
+    -0.3897
+   ],
+   "box_max_rad": [
+    0.576,
+    0.5343,
+    0.3878
+   ],
+   "angle_max_deg": 42.68,
+   "placeholder_angle_deg": 40.0
+  },
+  "rightUpperArm": {
+   "box_min_rad": [
+    -1.5613,
+    -0.9121,
+    -0.8219
+   ],
+   "box_max_rad": [
+    2.0653,
+    1.9198,
+    1.7446
+   ],
+   "angle_max_deg": 137.48,
+   "placeholder_angle_deg": 170.0
+  },
+  "rightLowerArm": {
+   "box_min_rad": [
+    -1.133,
+    -0.2959,
+    -1.3464
+   ],
+   "box_max_rad": [
+    1.3264,
+    2.4754,
+    1.2741
+   ],
+   "angle_max_deg": 149.43,
+   "placeholder_angle_deg": 150.0
+  },
+  "rightHand": {
+   "box_min_rad": [
+    -1.6792,
+    -1.3317,
+    -1.299
+   ],
+   "box_max_rad": [
+    1.3438,
+    1.3043,
+    1.2043
+   ],
+   "angle_max_deg": 109.52,
+   "placeholder_angle_deg": 90.0
+  },
+  "leftUpperLeg": {
+   "box_min_rad": [
+    -2.1633,
+    -1.0544,
+    -0.7542
+   ],
+   "box_max_rad": [
+    0.5377,
+    0.9314,
+    0.8026
+   ],
+   "angle_max_deg": 129.9,
+   "placeholder_angle_deg": 130.0
+  },
+  "leftLowerLeg": {
+   "box_min_rad": [
+    -0.1531,
+    -0.3631,
+    -0.4733
+   ],
+   "box_max_rad": [
+    2.475,
+    0.8685,
+    0.3482
+   ],
+   "angle_max_deg": 146.62,
+   "placeholder_angle_deg": 160.0
+  },
+  "leftFoot": {
+   "box_min_rad": [
+    -1.2554,
+    -0.73,
+    -0.6562
+   ],
+   "box_max_rad": [
+    0.8122,
+    0.7866,
+    0.5394
+   ],
+   "angle_max_deg": 81.29,
+   "placeholder_angle_deg": 70.0
+  },
+  "leftToes": {
+   "box_min_rad": [
+    -1.1116,
+    -0.401,
+    -0.4961
+   ],
+   "box_max_rad": [
+    0.9501,
+    0.3458,
+    0.4257
+   ],
+   "angle_max_deg": 68.84,
+   "placeholder_angle_deg": 60.0
+  },
+  "rightUpperLeg": {
+   "box_min_rad": [
+    -2.1633,
+    -0.9314,
+    -0.8026
+   ],
+   "box_max_rad": [
+    0.5377,
+    1.0544,
+    0.7542
+   ],
+   "angle_max_deg": 129.9,
+   "placeholder_angle_deg": 130.0
+  },
+  "rightLowerLeg": {
+   "box_min_rad": [
+    -0.1531,
+    -0.8685,
+    -0.3482
+   ],
+   "box_max_rad": [
+    2.475,
+    0.3631,
+    0.4733
+   ],
+   "angle_max_deg": 146.62,
+   "placeholder_angle_deg": 160.0
+  },
+  "rightFoot": {
+   "box_min_rad": [
+    -1.2554,
+    -0.7866,
+    -0.5394
+   ],
+   "box_max_rad": [
+    0.8122,
+    0.73,
+    0.6562
+   ],
+   "angle_max_deg": 81.29,
+   "placeholder_angle_deg": 70.0
+  },
+  "rightToes": {
+   "box_min_rad": [
+    -1.1116,
+    -0.3458,
+    -0.4257
+   ],
+   "box_max_rad": [
+    0.9501,
+    0.401,
+    0.4961
+   ],
+   "angle_max_deg": 68.84,
+   "placeholder_angle_deg": 60.0
+  }
+ }
+}

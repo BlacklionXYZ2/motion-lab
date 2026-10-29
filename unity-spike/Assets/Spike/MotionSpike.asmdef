@@ -1,0 +1,5 @@
+{
+  "name": "MotionSpike",
+  "references": ["VRM10", "UniGLTF", "UniGLTF.Utils", "FastSpringBone10", "SpringBoneJobs", "VrmLib", "Unity.InferenceEngine"],
+  "autoReferenced": true
+}

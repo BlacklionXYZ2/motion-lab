@@ -1,0 +1,47 @@
+{
+ "name": "combined",
+ "data": [
+  "data/processed/lafan1",
+  "data/processed/100style",
+  "data/processed/cmu"
+ ],
+ "model": {
+  "hidden": 256,
+  "layers": 1,
+  "head": "rotation"
+ },
+ "batch": 128,
+ "window": 72,
+ "warmup_ticks": 8,
+ "steps": 40000,
+ "learning_rate": 0.001,
+ "weight_decay": 0.0001,
+ "gradient_clip": 1.0,
+ "input_noise": 0.03,
+ "feedback_gradient": false,
+ "signal_dropout": 0.3,
+ "curriculum": [
+  [
+   0.0,
+   1
+  ],
+  [
+   0.3,
+   8
+  ],
+  [
+   0.6,
+   32
+  ]
+ ],
+ "validate_every": 1000,
+ "validation_windows": 512,
+ "seed": 1,
+ "source_weights": {
+  "lafan1": 1.0,
+  "100style": 0.3,
+  "cmu": 1.0
+ },
+ "storage": "cpu",
+ "_notes": "As combined.json (kept, with its model in runs/combined), but trained on v2 data: each dataset retargeted relative to its own T-pose rather than matching bone directions, which made the datasets disagree on neutral posture. The no-labels control for the keyword runs that follow."
+}

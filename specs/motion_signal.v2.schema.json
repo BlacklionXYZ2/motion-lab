@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "motionlab/motion_signal.v2",
+  "title": "MotionSignal",
+  "description": "DRAFT, not approved (Opus 5.5, 2026-10-26). The motion core's only input from SORA, version 2. Changes from v1: intent gains run, fall and get_up, and null for unknown (v1's neutral value was idle, so idle and unknown were the same); emotion is a keyword from a fixed list (or null) with an intensity, replacing valence and arousal floats, which a small language model can't set reliably (owner, 2026-10-23). Each emotion keyword has a fixed valence/arousal anchor in motion-lab (motionlab/motion_signal.py, EMOTION_ANCHORS). Conversation, attention, audio and context are as v1. Implemented in motion-lab versions/v4.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "at", "intent", "intent_target", "conversation", "emotion", "intensity", "attention", "audio", "context"],
+  "properties": {
+    "version": {"const": 2},
+    "at": {"type": "string", "format": "date-time", "description": "When the signal applies (UTC)."},
+    "intent": {
+      "description": "What she is doing; null when unknown.",
+      "enum": ["idle", "wave", "sit", "lean", "climb", "stand", "walk", "point", "look", "present", "run", "fall", "get_up", null]
+    },
+    "intent_target": {"type": ["string", "null"], "description": "A Core-issued window, control or pointer reference, already revalidated."},
+    "conversation": {"enum": ["idle", "listening", "thinking", "speaking", "waiting_for_agent"]},
+    "emotion": {
+      "description": "How she feels; null when unknown.",
+      "enum": ["neutral", "calm", "warm", "cheerful", "excited", "confident", "focused", "surprised", "concerned", "embarrassed", "frustrated", "sad", null]
+    },
+    "intensity": {
+      "description": "How strongly the emotion shows; null when unknown.",
+      "enum": ["low", "medium", "high", null]
+    },
+    "attention": {
+      "type": "object", "additionalProperties": false, "required": ["target", "salience"],
+      "properties": {
+        "target": {"type": ["string", "null"]},
+        "salience": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    },
+    "audio": {
+      "description": "Her own speech envelope for this frame; null while she is silent.",
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "object", "additionalProperties": false, "required": ["rms", "voiced", "pitch", "onset"],
+          "properties": {
+            "rms": {"type": "number", "minimum": 0, "maximum": 1},
+            "voiced": {"type": "boolean"},
+            "pitch": {"type": ["number", "null"], "minimum": 0, "maximum": 1, "description": "Log-pitch within her voice's range; null when unvoiced."},
+            "onset": {"type": "number", "minimum": 0, "maximum": 1}
+          }
+        }
+      ]
+    },
+    "context": {
+      "type": "object", "additionalProperties": false, "required": ["monitor_id", "support_surface_id"],
+      "properties": {
+        "monitor_id": {"type": "string"},
+        "support_surface_id": {"type": ["string", "null"], "description": "The taskbar, a window top or an edge she is on."}
+      }
+    }
+  }
+}

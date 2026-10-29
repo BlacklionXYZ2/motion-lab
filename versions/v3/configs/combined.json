@@ -1,0 +1,41 @@
+{
+ "name": "combined",
+ "data": [
+  "data/processed/lafan1",
+  "data/processed/100style",
+  "data/processed/cmu"
+ ],
+ "clean_data": true,
+ "model": {
+  "hidden": 256,
+  "layers": 1,
+  "head": "rotation"
+ },
+ "batch": 128,
+ "window": 72,
+ "warmup_ticks": 8,
+ "steps": 40000,
+ "learning_rate": 0.001,
+ "weight_decay": 0.0001,
+ "gradient_clip": 1.0,
+ "input_noise": 0.03,
+ "feedback_gradient": false,
+ "signal_dropout": 0.3,
+ "curriculum": [
+  [0.0, 1, 72],
+  [0.25, 8, 72],
+  [0.45, 32, 72],
+  [0.65, 64, 104],
+  [0.85, 128, 168]
+ ],
+ "validate_every": 1000,
+ "validation_windows": 512,
+ "seed": 1,
+ "source_weights": {
+  "lafan1": 1.0,
+  "100style": 0.3,
+  "cmu": 1.0
+ },
+ "storage": "cpu",
+ "_notes": "v3: v2's model, data and settings, plus (1) the quality filter (broken CMU frames cut out, duplicate CMU takes dropped), (2) joint and hips limit losses from the data's own ranges (motionlab/assets/joint_limits.json), (3) rollouts on to 64 and 128 ticks (about 2 s alone) with longer windows. Validation is at the last phase: horizon 128, window 168."
+}

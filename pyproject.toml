@@ -1,0 +1,28 @@
+[project]
+name = "motionlab"
+version = "0.0.0"
+description = "Research for SORA's learned motion core (roadmap: ../SORA/docs/plans/MOTION-CORE-ROADMAP_2026-10-11.md)"
+requires-python = ">=3.12"
+# torch, numpy, onnxruntime and pytest come from the owner's ROCm Python (the .venv is created
+# with --system-site-packages; see setup-env.ps1). onnx and onnxscript are installed
+# into the .venv itself.
+dependencies = ["numpy", "torch", "onnx", "onnxscript", "onnxruntime"]
+
+[tool.pytest.ini_options]
+# Each model version is self-contained (versions/vN) and is tested on its own, from motion-lab:
+#   .venv\Scripts\python -m pytest versions\v2
+# Its conftest.py puts that version's motionlab first. Never collect two versions in one run:
+# Python would import only one version's motionlab and test both against it.
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "RUF"]
+ignore = ["RUF001", "RUF002", "RUF003"]  # Greek letters and × in maths docstrings are intended
+
+[tool.ruff.lint.isort]
+# motionlab and scripts live in each version folder (versions/vN/), not at the top level.
+known-first-party = ["motionlab", "scripts"]
+

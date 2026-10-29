@@ -1,0 +1,5 @@
+{
+  "name": "MotionEnv.AvatarLayer",
+  "references": ["VRM10", "UniGLTF", "UniGLTF.Utils", "VrmLib", "FastSpringBone10", "SpringBoneJobs"],
+  "autoReferenced": true
+}
