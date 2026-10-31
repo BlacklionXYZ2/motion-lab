@@ -81,6 +81,73 @@ class Streamer:
         self._ramp_goal: torch.Tensor | None = None
         self._ramp_done = 0  # frames of the current ease already played
 
+    # An idle anchor (2026-10-30): a known-good standing frame, ``(posed joints (27, 3) with the
+    # root's ground position at the origin, global rotations (27, 3, 3))``. While it is set,
+    # every replan with a path also puts that pose, at her current spot, as a full-body keyframe
+    # on the window's last frame. It is always 2 s ahead and never reached, so it pulls rather
+    # than poses her: without it a long idle drifts until she floats, collapses or spins.
+    anchor: tuple[torch.Tensor, torch.Tensor] | None = None
+    anchor_turn = False  # turn the anchor to her current heading first (getting up)
+    # Getting up: the anchor's stream frame (ARDY frames since the stream began). A target that
+    # stays 2 s ahead pulls a standing idle back but never lifts her off the ground (tried
+    # 2026-10-30: hips stayed at 0.44 m), so a get-up target is fixed in time and comes nearer.
+    anchor_at: int | None = None
+    played = 0  # ARDY frames appended so far
+
+    def anchor_offsets(self, hist_len: int, frames: int) -> list[int]:
+        if self.anchor_at is None:
+            return [frames - k for k in self.anchor_frames]
+        return [min(frames - 1, max(hist_len, hist_len + self.anchor_at - self.played))]
+
+    def _heading(self, posed: torch.Tensor) -> torch.Tensor:
+        from ardy.motion_rep.tools import compute_heading_angle
+
+        return compute_heading_angle(posed[None], self.rep.skeleton)[0]
+
+    def _turned(self, posed: torch.Tensor, rots: torch.Tensor
+                ) -> tuple[torch.Tensor, torch.Tensor]:
+        """``posed``/``rots`` turned about +Y (around the root) to her current heading."""
+        now = self.rep.inverse(self.motion[:, -1:], is_normalized=True)["posed_joints"][0, 0]
+        delta = self._heading(now) - self._heading(posed)
+        for sign in (1.0, -1.0):  # ARDY's heading sign convention, checked numerically
+            c, s = torch.cos(sign * delta), torch.sin(sign * delta)
+            turn = torch.tensor([[c, 0.0, s], [0.0, 1.0, 0.0], [-s, 0.0, c]])
+            root = posed[self.rep.skeleton.root_idx].clone()
+            root[1] = 0.0
+            out = (posed - root) @ turn.T + root
+            if torch.cos(self._heading(out) - self._heading(now)) > 0.99:
+                return out, turn @ rots
+        return posed, rots
+
+    # Window frames (counted back from its last) that carry the anchor keyframe: 2 s and 1 s
+    # ahead. One keyframe (2 s) kept the hips but let limbs drift for some prompts (up to 45% of
+    # joint-frames outside the data's limits); two held every prompt tried (idle_test.py).
+    anchor_frames: tuple[int, ...] = (1, 21)
+
+    def _anchor_constraint(self, hist_len: int, frames: int):
+        from ardy.constraints import FullBodyConstraintSet
+
+        assert self.anchor is not None
+        posed, rots = self.anchor
+        position, _ = self._root_now()
+        if self.anchor_turn:  # face the way she faces now (getting up shouldn't twist her)
+            posed, rots = self._turned(posed, rots)
+        here = posed.clone()
+        here[:, 0] += position[0]
+        here[:, 2] += position[2]
+        at = torch.tensor(self.anchor_offsets(hist_len, frames))
+        n = len(at)
+        return FullBodyConstraintSet(self.rep.skeleton, at, here[None].expand(n, -1, -1),
+                                     rots[None].expand(n, -1, -1, -1))
+
+    def save(self) -> tuple:
+        """Everything a replan changes, so a rejected draw can be undone (service guard)."""
+        return self.motion, self._ramp_from, self._ramp_goal, self._ramp_done, self.played
+
+    def restore(self, state: tuple) -> None:
+        (self.motion, self._ramp_from, self._ramp_goal, self._ramp_done,
+         self.played) = state
+
     def _commanded(self, i: int) -> torch.Tensor:
         """The commanded velocity ``i`` frames after the last played frame."""
         assert self._ramp_from is not None and self._ramp_goal is not None
@@ -126,8 +193,11 @@ class Streamer:
         mask = observed = None
         if target is not None:
             path = self._path(target, hist_len, self.horizon)
+            sets = [path]
+            if self.anchor is not None and self.motion is not None:
+                sets.append(self._anchor_constraint(hist_len, frames))
             observed, mask = self.rep.create_conditions_from_constraints(
-                [path], length=frames, to_normalize=False, device="cpu")
+                sets, length=frames, to_normalize=False, device="cpu")
             observed = self.rep.normalize(observed) * mask
             observed, mask = observed[None], mask[None]
             mask[:, :hist_len] = 0.0
@@ -141,6 +211,7 @@ class Streamer:
                 init_first_heading_angle=None if history is not None else torch.zeros(1))
         new = samples[:, hist_len:] if keep is None else samples[:, hist_len:hist_len + keep]
         self.motion = new if self.motion is None else torch.cat((self.motion, new), 1)
+        self.played += new.shape[1]
         if target is None:
             self._ramp_from = self._ramp_goal = None  # no command: the next starts from her
         else:

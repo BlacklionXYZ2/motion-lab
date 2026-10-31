@@ -1,0 +1,81 @@
+{
+ "name": "feet-vel-free2",
+ "data": [
+  "data/processed/lafan1",
+  "data/processed/100style",
+  "data/processed/cmu"
+ ],
+ "clean_data": true,
+ "support_frame": true,
+ "rare_intent_boost": 20.0,
+ "velocity_lookahead": 30,
+ "model": {
+  "hidden": 256,
+  "layers": 1,
+  "head": "rotation",
+  "latent": 0,
+  "latent_width": 256,
+  "signal_widths": {
+   "intent": 32,
+   "conversation": 16,
+   "emotion": 16,
+   "attention": 16,
+   "audio": 16,
+   "context": 8,
+   "locomotion": 16
+  }
+ },
+ "init_from": "runs/feet-only/best.pt",
+ "loss_weights": {
+  "foot_height": 2.0,
+  "foot_skate": 0.5,
+  "ground": 4.0,
+  "self_contact": 4.0,
+  "leg_cross": 4.0,
+  "energy_floor": 0.5
+ },
+ "batch": 64,
+ "window": 72,
+ "warmup_ticks": 8,
+ "steps": 4000,
+ "learning_rate": 0.0003,
+ "weight_decay": 0.0001,
+ "gradient_clip": 1.0,
+ "input_noise": 0.03,
+ "feedback_gradient": false,
+ "signal_dropout": 0.3,
+ "curriculum": [
+  [
+   0.0,
+   8,
+   72
+  ],
+  [
+   0.3,
+   32,
+   72
+  ],
+  [
+   0.6,
+   64,
+   104
+  ]
+ ],
+ "validate_every": 500,
+ "validation_windows": 256,
+ "seed": 3,
+ "source_weights": {
+  "lafan1": 1.0,
+  "100style": 0.3,
+  "cmu": 1.0
+ },
+ "storage": "cpu",
+ "_notes": "v5 full recipe, deterministic: feet-only grown with the velocity input, plus the same free runs as latent-vel-free, to see whether the latent is needed. Second start (2026-10-30 09:55): the first ran at 3.5 s a step with a 4 s free run every step, about 5 h; this one has a 3 s free run every third step. The first, stopped at about step 300, is kept in runs/feet-vel-free.",
+ "free_run": {
+  "every": 3,
+  "batch": 32,
+  "context": 30,
+  "ticks": 180,
+  "start": 0.0
+ }
+}

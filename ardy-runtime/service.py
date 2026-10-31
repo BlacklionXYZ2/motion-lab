@@ -27,6 +27,12 @@ rotations as quaternions ``[x, y, z, w]``. Unity converts to and from its own fr
 It runs at the real-time setting measured on the owner's GPU: a replan every 8 frames (0.4 s),
 4 frames of history, 4 diffusion steps by default. It keeps about one chunk ahead of real time.
 ``--fast`` skips the pacing (tests and evaluation).
+
+**Anchoring (2026-10-30, on by default; ``--no-anchor``):** after 1.6 s standing still under an
+idle-like key, her own pose is held as a full-body keyframe ahead of every replan, and when she
+is on the ground and asked to get up or stand about, her last standing pose becomes a keyframe
+2.5 s ahead. Without it a long idle came apart within a minute and she never got up after a fall
+(``stress_service.py``). ``--retries N`` redraws chunks that fail ``guard.py`` (off by default).
 """
 
 from __future__ import annotations
@@ -50,16 +56,33 @@ sys.path.insert(0, str(HERE))
 PROTOCOL = sys.stdout
 sys.stdout = sys.stderr
 
-import probe  # noqa: E402
+import probe  # noqa: E402, I001  (order matters: guard needs the path stream sets)
 import retarget  # noqa: E402
 from stream import Streamer  # noqa: E402
 
+import guard  # noqa: E402  (after stream, which puts motion-lab's package on the path)
+
 PHRASES = HERE / "assets" / "phrases.npz"
+STANDING = HERE / "assets" / "standing_pose.npz"
 KEEP = 8  # ARDY frames played between replans (0.4 s at 20 fps)
 HISTORY = 4  # ARDY frames of history per replan (NVIDIA's demo default)
 LEAD_S = 0.45  # how far ahead of real time to stay
 MAX_MOTION = 64  # ARDY frames kept as context (longer than any history used)
 OUT_FPS = 60
+STILL_INTENTS = {"-", "idle", "look", "stand"}  # idle-like keys that may be anchored
+ANCHOR_AFTER = 32  # ARDY frames (1.6 s) of standing still before the anchor is taken
+GET_UP_FRAMES = 50  # ARDY frames (2.5 s) she is given to get up
+# Only a real standing height is anchored (her rest is 0.894 m; ARDY's idle stands at 0.89 to
+# 0.92). The guard's 0.70 m let one run anchor a half crouch after sitting (hips 0.75 m).
+ANCHOR_MIN_HIPS = 0.82
+
+
+def default_standing() -> tuple[torch.Tensor, torch.Tensor] | None:
+    """``assets/standing_pose.npz`` (``standing_pose.py``), or None if it hasn't been made."""
+    if not STANDING.exists():
+        return None
+    data = np.load(STANDING)
+    return torch.from_numpy(data["posed"]), torch.from_numpy(data["rots"])
 
 
 class PhraseTable:
@@ -76,8 +99,19 @@ class PhraseTable:
 
 
 class MotionService:
-    def __init__(self, precision: str, steps: int) -> None:
+    def __init__(self, precision: str, steps: int, retries: int = 0,
+                 anchoring: bool = True) -> None:
         started = time.time()
+        self.anchoring = anchoring  # idle anchoring (_update_anchor)
+        self.still = 0  # ARDY frames she has been standing still under an idle-like key
+        self.anchors = 0  # anchors captured
+        # get-up target: her own last standing pose, or ARDY's standing_pose.py frame until then
+        self.standing: tuple[torch.Tensor, torch.Tensor] | None = default_standing()
+        self.getting_up, self.get_ups = False, 0
+        self.retries = retries  # redraws of a chunk that fails the guard (next_chunk)
+        self.rejected = 0  # draws thrown away
+        self.unresolved = 0  # chunks sent although every draw failed (the least bad)
+        self.key = "-|-|-"
         self.model = probe.load("onnx-dml", precision)
         self.rep = self.model.motion_rep
         self.names = list(self.rep.skeleton.bone_order_names)
@@ -113,25 +147,106 @@ class MotionService:
         self.streamer.motion = self.rep.normalize(explicit)
         last_c = (rot[-1:], root[-1:], np.zeros((1, 4), dtype=bool))
         self.last = last_c
+        self.still, self.streamer.anchor, self.getting_up = 0, None, False
+        self.streamer.anchor_at = None
+        # Until she has stood still, the seed's last frame (if she is on her feet) is her
+        # get-up target.
+        if guard.HIPS_BAND[0] <= float(root[-1, 1]) <= guard.HIPS_BAND[1]:
+            self.standing = self._current_pose()
         self.seq, self.t = 0, 0.0
 
     def signal(self, message: dict) -> None:
-        self.text, self.prompt = self.phrases.feature(str(message.get("key", "-|-|-")))
+        self.key = str(message.get("key", "-|-|-"))
+        self.text, self.prompt = self.phrases.feature(self.key)
         velocity = message.get("velocity")
         self.velocity = None if velocity is None else (
             float(velocity[0]) / retarget.ROOT_SCALE, float(velocity[1]) / retarget.ROOT_SCALE)
 
     # ---------- output ----------
 
-    def next_chunk(self) -> dict:
-        """Generate the next 0.4 s and return it as canonical 60 Hz frames."""
+    def _generate(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """One replan: the next KEEP ARDY frames, appended to the stream, as canonical
+        (local rotations, root, contacts) at ARDY's frame rate."""
         self.streamer.step(self.text, self.velocity, KEEP)
         if self.streamer.motion.shape[1] > MAX_MOTION:
             self.streamer.motion = self.streamer.motion[:, -MAX_MOTION:]
         out = self.rep.inverse(self.streamer.motion[:, -KEEP:], is_normalized=True)
-        local, root, contacts = retarget.to_canonical(
+        return retarget.to_canonical(
             out["global_rot_mats"][0].numpy(), out["root_positions"][0].numpy(),
             out["foot_contacts"][0].numpy(), self.names, self.contact_names)
+
+    def _update_anchor(self, badness: float) -> None:
+        """Idle anchoring (2026-10-30, see ``Streamer.anchor``). Once she has stood still under
+        an idle-like key for ANCHOR_AFTER ARDY frames and the newest chunk passed the guard, its
+        last frame becomes her anchor; moving, or any other intent, drops it."""
+        intent = self.key.split("|")[0] or "-"
+        stopped = self.velocity is not None and abs(self.velocity[0]) + abs(self.velocity[1]) < 0.05
+        hips = float(self.last[1][-1, 1]) if self.last is not None else None
+        # below standing height: lying, kneeling, or left half-crouched after sitting
+        down = hips is not None and hips < ANCHOR_MIN_HIPS
+        streamer = self.streamer
+        # Getting up (2026-10-30): asked to get up, or to stand about while she is down (after
+        # a fall SORA sends "fall", then idle), ARDY alone left her on the ground (hips 0.35 to
+        # 0.45 m for 12 s). Her last good standing pose, turned to her current heading, becomes
+        # a keyframe 2 s ahead, so ARDY fills in the getting up.
+        if (self.anchoring and stopped and self.standing is not None
+                and (intent == "get_up" or (intent in STILL_INTENTS and down))):
+            streamer.anchor, streamer.anchor_frames, streamer.anchor_turn = (
+                self.standing, (1,), True)
+            self.still = 0
+            if not self.getting_up:
+                self.getting_up, self.get_ups = True, self.get_ups + 1
+            if streamer.anchor_at is None or streamer.anchor_at <= streamer.played:
+                # (again if the time has come and she is still down: never a target in the past)
+                streamer.anchor_at = streamer.played + GET_UP_FRAMES
+            return
+        if self.getting_up:  # up again (or asked for something else): drop the target
+            self.getting_up, streamer.anchor, streamer.anchor_at = False, None, None
+        streamer.anchor_frames, streamer.anchor_turn = (1, 21), False
+        still = self.anchoring and intent in STILL_INTENTS and stopped
+        if not still:
+            self.still, streamer.anchor = 0, None
+            return
+        self.still += KEEP
+        upright = hips is not None and hips >= ANCHOR_MIN_HIPS
+        if streamer.anchor is None and self.still >= ANCHOR_AFTER and badness == 0 and upright:
+            streamer.anchor = self._current_pose()
+            self.standing = streamer.anchor
+            self.anchors += 1
+
+    def _current_pose(self) -> tuple[torch.Tensor, torch.Tensor]:
+        """Her newest frame as ``(posed joints with the root's ground position at the origin,
+        global rotations)``, ARDY's frame."""
+        out = self.rep.inverse(self.streamer.motion[:, -1:], is_normalized=True)
+        posed = out["posed_joints"][0, 0].clone()
+        posed[:, [0, 2]] -= posed[self.rep.skeleton.root_idx, [0, 2]].clone()
+        return posed, out["global_rot_mats"][0, 0].clone()
+
+    def next_chunk(self) -> dict:
+        """Generate the next 0.4 s and return it as canonical 60 Hz frames.
+
+        With ``retries`` (2026-10-30), a chunk that fails :func:`guard.problems` is thrown away
+        and drawn again from the same history, up to ``retries`` more times; the least bad draw
+        is kept. Left alone, ARDY's stream drifts during a long idle: every variant tried came
+        apart within 30 to 60 s (stress_service.py, idle_test.py)."""
+        best = None
+        for attempt in range(1 + self.retries):
+            saved = self.streamer.save()
+            local, root, contacts = self._generate()
+            score = guard.badness(local, root, self.key, self.last)
+            if best is None or score < best[0]:
+                best = (score, (local, root, contacts), self.streamer.save())
+            if score == 0:
+                break
+            self.rejected += 1
+            if attempt < self.retries:
+                self.streamer.restore(saved)
+        assert best is not None
+        _, (local, root, contacts), state = best
+        self.streamer.restore(state)
+        if best[0] > 0:
+            self.unresolved += 1
+        self._update_anchor(best[0])
         if self.last is None:  # no seed: the first frame stands in for "before"
             self.last = (local[:1], root[:1], contacts[:1])
         prev_local, prev_root, prev_contacts = self.last
@@ -172,9 +287,14 @@ def main() -> None:
     parser.add_argument("--precision", default="fp16", choices=("fp16", "fp32"))
     parser.add_argument("--steps", type=int, default=4)
     parser.add_argument("--fast", action="store_true", help="no real-time pacing")
+    parser.add_argument("--retries", type=int, default=0,
+                        help="redraws of a chunk that fails guard.py's checks")
+    parser.add_argument("--no-anchor", action="store_true",
+                        help="no idle anchoring (a long idle then drifts)")
     args = parser.parse_args()
     try:
-        service = MotionService(args.precision, args.steps)
+        service = MotionService(args.precision, args.steps, args.retries,
+                                anchoring=not args.no_anchor)
     except Exception as exc:
         emit({"type": "error", "message": f"load failed: {type(exc).__name__}: {exc}"[:500]})
         return

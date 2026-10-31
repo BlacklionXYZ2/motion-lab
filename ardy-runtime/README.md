@@ -41,6 +41,29 @@ environment, and nothing here is part of SORA yet.
 - **Zero, not null, to stop:** standing sends a zero velocity, because text alone sometimes
   walked on.
 
+## Stress test, idle anchoring and getting up (2026-10-30)
+
+| File | What |
+|---|---|
+| `stress_service.py` | drives `MotionService` in-process chunk by chunk, as SORA does, through adversarial scenarios (turns, flicker, sit while travelling, extremes, odd seeds, a 2-minute idle, falls, lying starts), scored with motion-lab v5's stress measures; `--no-anchor`, `--retries`, `--only` |
+| `idle_test.py` | the long-idle experiment: energy, turning, hips and limits per 10 s under variants |
+| `guard.py` | sanity checks for one chunk (limits, hips band, head below hips, pops) |
+| `standing_pose.py` → `assets/standing_pose.npz` | ARDY's own standing frame, the get-up target before she has stood still |
+
+- **Found:**
+  - a long idle came apart within 30 to 60 s under every variant tried;
+  - after a fall she never got up.
+- **Fixed in the service (on by default):**
+  - **idle anchoring:** her own standing pose becomes a full-body keyframe 1 s and 2 s ahead
+    once she has stood still for 1.6 s;
+  - **getting up:** her last standing pose becomes a keyframe fixed 2.5 s ahead whenever she is
+    down and asked to get up or stand about.
+- **Results:**
+  - over 2 minutes of idle, joints outside the limits went from 29% to 3.3% and the largest pop
+    from 60° to 18° a frame;
+  - she got up in 6 of 6 lying starts.
+- Details in motion-lab's changelog `2026-10-30T085000+0000_ARDY-STRESS-IDLE-ANCHOR-AND-GET-UP`.
+
 ## Later files (evaluation and streaming)
 
 | File | What |

@@ -1,0 +1,91 @@
+{
+ "name": "latent-vel-free6",
+ "data": [
+  "data/processed/lafan1",
+  "data/processed/100style",
+  "data/processed/cmu"
+ ],
+ "clean_data": true,
+ "support_frame": true,
+ "rare_intent_boost": 20.0,
+ "velocity_lookahead": 30,
+ "model": {
+  "hidden": 256,
+  "layers": 1,
+  "head": "rotation",
+  "latent": 32,
+  "latent_width": 256,
+  "signal_widths": {
+   "intent": 32,
+   "conversation": 16,
+   "emotion": 16,
+   "attention": 16,
+   "audio": 16,
+   "context": 8,
+   "locomotion": 16
+  }
+ },
+ "init_from": "runs/latent-vel-free5/best.pt",
+ "loss_weights": {
+  "kl": 0.1,
+  "kl_free_bits": 0.02,
+  "foot_height": 2.0,
+  "foot_skate": 0.5,
+  "ground": 4.0,
+  "self_contact": 4.0,
+  "leg_cross": 4.0,
+  "energy_floor": 0.5,
+  "energy_ceiling": 0.5,
+  "posture": 4.0,
+  "jerk_ceiling": 0.2,
+  "free_limits": 4.0,
+  "track": 2.0,
+  "free_skate": 0.5
+ },
+ "batch": 64,
+ "window": 72,
+ "warmup_ticks": 8,
+ "steps": 3000,
+ "learning_rate": 0.0003,
+ "weight_decay": 0.0001,
+ "gradient_clip": 1.0,
+ "input_noise": 0.03,
+ "feedback_gradient": false,
+ "signal_dropout": 0.3,
+ "curriculum": [
+  [
+   0.0,
+   8,
+   72
+  ],
+  [
+   0.3,
+   32,
+   72
+  ],
+  [
+   0.6,
+   64,
+   104
+  ]
+ ],
+ "validate_every": 500,
+ "validation_windows": 256,
+ "seed": 6,
+ "source_weights": {
+  "lafan1": 1.0,
+  "100style": 0.3,
+  "cmu": 1.0
+ },
+ "storage": "cpu",
+ "_notes": "v5: latent-vel-free5 continued. Every second free run is counterfactual: a random world velocity (a quarter standing still, the rest 0.3 to 3 m/s in any direction), given in her heading frame each tick, scored on following it after 1 s and on the recording-free terms only. Plus a recording-free skate term (free_skate: a foot joint within 3 cm of the floor sliding). free5 reached 0.09 of an asked 1.2 m/s, never turned to a new heading, and glided in 71% of moving frames.",
+ "free_run": {
+  "every": 3,
+  "batch": 32,
+  "context": 30,
+  "ticks": 240,
+  "start": 0.0,
+  "noise_correlation": 0.98,
+  "counterfactual": 2
+ }
+}

@@ -1,0 +1,89 @@
+{
+ "name": "latent-vel-free5",
+ "data": [
+  "data/processed/lafan1",
+  "data/processed/100style",
+  "data/processed/cmu"
+ ],
+ "clean_data": true,
+ "support_frame": true,
+ "rare_intent_boost": 20.0,
+ "velocity_lookahead": 30,
+ "model": {
+  "hidden": 256,
+  "layers": 1,
+  "head": "rotation",
+  "latent": 32,
+  "latent_width": 256,
+  "signal_widths": {
+   "intent": 32,
+   "conversation": 16,
+   "emotion": 16,
+   "attention": 16,
+   "audio": 16,
+   "context": 8,
+   "locomotion": 16
+  }
+ },
+ "init_from": "runs/latent-vel-free3/best.pt",
+ "loss_weights": {
+  "kl": 0.1,
+  "kl_free_bits": 0.02,
+  "foot_height": 2.0,
+  "foot_skate": 0.5,
+  "ground": 4.0,
+  "self_contact": 4.0,
+  "leg_cross": 4.0,
+  "energy_floor": 0.5,
+  "energy_ceiling": 0.5,
+  "posture": 4.0,
+  "jerk_ceiling": 0.2,
+  "free_limits": 4.0,
+  "track": 1.0
+ },
+ "batch": 64,
+ "window": 72,
+ "warmup_ticks": 8,
+ "steps": 3000,
+ "learning_rate": 0.0003,
+ "weight_decay": 0.0001,
+ "gradient_clip": 1.0,
+ "input_noise": 0.03,
+ "feedback_gradient": false,
+ "signal_dropout": 0.3,
+ "curriculum": [
+  [
+   0.0,
+   8,
+   72
+  ],
+  [
+   0.3,
+   32,
+   72
+  ],
+  [
+   0.6,
+   64,
+   104
+  ]
+ ],
+ "validate_every": 500,
+ "validation_windows": 256,
+ "seed": 5,
+ "source_weights": {
+  "lafan1": 1.0,
+  "100style": 0.3,
+  "cmu": 1.0
+ },
+ "storage": "cpu",
+ "_notes": "v5: as latent-vel-free4 (a parallel branch from latent-vel-free3) plus following the velocity input in free runs (track, 1.0: achieved ground velocity per 0.5 s against the command turned into the world by her own heading). latent-vel-free3 reached a fifth of the asked speed and never turned to a new heading.",
+ "free_run": {
+  "every": 3,
+  "batch": 32,
+  "context": 30,
+  "ticks": 240,
+  "start": 0.0,
+  "noise_correlation": 0.98
+ }
+}

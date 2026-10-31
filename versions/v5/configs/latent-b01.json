@@ -1,0 +1,50 @@
+{
+ "name": "latent-b01",
+ "data": [
+  "data/processed/lafan1",
+  "data/processed/100style",
+  "data/processed/cmu"
+ ],
+ "clean_data": true,
+ "support_frame": true,
+ "rare_intent_boost": 20.0,
+ "model": {
+  "hidden": 256,
+  "layers": 1,
+  "head": "rotation",
+  "latent": 32,
+  "latent_width": 256
+ },
+ "init_from": "runs/from-v4/best.pt",
+ "loss_weights": {
+  "kl": 0.1,
+  "kl_free_bits": 0.02,
+  "foot_height": 2.0,
+  "foot_skate": 0.5
+ },
+ "batch": 64,
+ "window": 72,
+ "warmup_ticks": 8,
+ "steps": 6000,
+ "learning_rate": 0.0003,
+ "weight_decay": 0.0001,
+ "gradient_clip": 1.0,
+ "input_noise": 0.03,
+ "feedback_gradient": false,
+ "signal_dropout": 0.3,
+ "curriculum": [
+  [0.0, 8, 72],
+  [0.3, 32, 72],
+  [0.6, 64, 104]
+ ],
+ "validate_every": 500,
+ "validation_windows": 256,
+ "seed": 1,
+ "source_weights": {
+  "lafan1": 1.0,
+  "100style": 0.3,
+  "cmu": 1.0
+ },
+ "storage": "cpu",
+ "_notes": "v5 first try: v4's best model (copied to runs/from-v4) plus a 32-dimensional per-tick latent (learned prior; the posterior sees the recorded next frame), fine-tuned on the CPU (the GPU was full with LM Studio's model). KL weight 0.1, 0.02 free nats per dimension. Aimed at v4's wind-down: a deterministic model averages the possible next frames into a calm one."
+}

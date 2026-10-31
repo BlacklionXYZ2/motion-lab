@@ -11,7 +11,7 @@ here is part of SORA until stage M8.
 - **Who does what (owner, 2026-10-11):** agents build, train and evaluate. The owner supplies
   dataset licences, GPU time and naturalness judgements.
 
-## Status (2026-10-17)
+## Status (2026-10-30)
 
 - **M0 (foundations): complete.** See [docs/M0.md](docs/M0.md).
   - Rotations, the 22-joint canonical skeleton (Alice's proportions), the avatar adapter,
@@ -21,6 +21,15 @@ here is part of SORA until stage M8.
   - The skeleton table was reviewed line by line by Gemini 4 Argon (2026-10-16).
 - **M1 (the motion prior): training.** Each model version is self-contained in `versions/vN/`
   (owner, 2026-10-25); see [docs/M1.md](docs/M1.md) for the versions and what each produced.
+  - **v5 (2026-10-30 onwards)** has the stress battery (`scripts/stress_m1.py`).
+    - Freezing is solved: a latent, free-run training and correlated noise.
+    - `latent-vel-free7` steers precisely but glides.
+    - The foot and ground locks make gliding and hovering impossible: `latent-vel-lock-sup`
+      walks on planted feet but doesn't follow commands yet.
+    - Status and every run: [versions/v5/README.md](versions/v5/README.md).
+- **ARDY** (NVIDIA's model, what SORA's Reload motion model runs): `ardy-runtime/`.
+  - Stress-tested on 2026-10-30.
+  - The service now anchors long idles and gets her up after a fall (`ardy-runtime/README.md`).
 - **MA (the avatar layer and the training environment): built** in `unity-env/`. See
   [docs/MA.md](docs/MA.md): fitting onto any VRM, the physics body, falling, desktop surfaces,
   the seven 60 s scenarios (walking and running included) and the physics ladder. Its code is
